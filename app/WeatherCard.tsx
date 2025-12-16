@@ -4,22 +4,23 @@ type WeatherCardProps = {
   city: string;
   temperature: number;
   condition: string;
+  localTime: string; 
   style?: any; 
 };
 
-export function WeatherCard({ city, temperature, condition, style }: WeatherCardProps) {
+export function WeatherCard({ city, temperature, condition, localTime, style }: WeatherCardProps) {
   return (
-    <View style={[styles.container, style]}>
-      <Text style={styles.city}>{city}</Text>
-      <Text style={styles.temp}>{temperature}°</Text>
-      <Text style={styles.condition}>{condition}</Text>
-    </View>
-  );
+  <View style={[styles.container, style]}>
+    <Text style={styles.city}>{city}</Text>
+    <Text style={styles.temp}>{temperature}°</Text>
+    <Text style={styles.condition}>{condition}</Text>
+    {localTime && <Text style={styles.time}>{localTime}</Text>}  
+  </View>  
+);
 }
 
 const styles = StyleSheet.create({
   container: {
-    
     backgroundColor: "transparent", 
     borderRadius: 24,
     paddingHorizontal: 32,
@@ -41,5 +42,11 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 20,
     marginTop: 8,
+  },
+  time: {
+    color: "white",
+    fontSize: 16,
+    opacity: 0.7,
+    marginTop: 4,
   },
 });

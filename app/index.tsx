@@ -63,13 +63,14 @@ export default function Index() {
   const [condition, setCondition] = useState("Loading weather...");
   const [searchText, setSearchText] = useState("");
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>("day");
-
+  const [localTime, setLocalTime] = useState("");  
   async function loadLocalWeather() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setCity("Permission denied");
         setCondition("Search for a city");
+        setLocalTime("");
         return;
       }
 
@@ -92,10 +93,15 @@ export default function Index() {
       const epoch = data.currentConditions?.datetimeEpoch;
       const now = epoch ? new Date(epoch * 1000) : new Date();
       setTimeOfDay(getTimeOfDay(now));
+      
+
+      const localTimeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      setLocalTime(localTimeStr);
     } catch (err) {
       console.error("Location/weather error", err);
       setCity("Error");
       setCondition("Try searching for a city");
+      setLocalTime("");
     }
   }
 
@@ -126,6 +132,9 @@ export default function Index() {
       const epoch = data.currentConditions?.datetimeEpoch;
       const now = epoch ? new Date(epoch * 1000) : new Date();
       setTimeOfDay(getTimeOfDay(now));
+      
+      const localTimeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      setLocalTime(localTimeStr);
     } catch (err) {
       console.error("Weather fetch failed", err);
     }
@@ -144,6 +153,7 @@ export default function Index() {
         city={city} 
         temperature={temp} 
         condition={condition}
+        localTime={localTime}  
         style={styles.transparentCard}  
       />
 
