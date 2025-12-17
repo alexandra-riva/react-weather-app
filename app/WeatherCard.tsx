@@ -14,7 +14,7 @@ export function WeatherCard({ city, temperature, condition, localTime, style }: 
     <Text style={styles.city}>{city}</Text>
     <Text style={styles.temp}>{temperature}°</Text>
     <Text style={styles.condition}>{condition}</Text>
-    {localTime && <Text style={styles.time}>{localTime}</Text>}  
+    {/* {localTime && <Text style={styles.time}>{localTime}</Text>} */}
   </View>  
 );
 }

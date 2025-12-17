@@ -17,9 +17,10 @@ function getTimeOfDay(date: Date): TimeOfDay {
   return "night";
 }
 
-function getGradientForCondition(condition: string, timeOfDay: TimeOfDay, temp: number) {
+function getGradientForCondition(condition: string, timeOfDay: TimeOfDay, temp: number): string[] {
   const c = condition.toLowerCase();
 
+  // RAIN/STORM/SNOW always override everything
   if (c.includes("rain") || c.includes("drizzle")) {
     return timeOfDay === "night" ? ["#0a1428", "#1e40af"] : ["#1e40af", "#60a5fa"];
   }
@@ -30,6 +31,23 @@ function getGradientForCondition(condition: string, timeOfDay: TimeOfDay, temp: 
     return ["#f8fafc", "#cbd5e1"];
   }
 
+  // TEMPERATURE FIRST - cold/hot overrides weather
+  const isHot = temp > 25;
+  const isCold = temp < 5;
+
+  if (isCold) {
+    // COLD places get icy tones regardless of "clear"
+    if (timeOfDay === "night") return ["#020617", "#1e293b"];
+    return ["#f1f5f9", "#94a3b8"]; // icy blue/grey
+  }
+
+  if (isHot) {
+    // Hot places get warm tones
+    if (timeOfDay === "night") return ["#020617", "#7c2d12"];
+    return ["#fefce8", "#eab308"];
+  }
+
+  // NOW do sunny conditions (only for mild temps)
   if (c.includes("sun") || c.includes("clear") || c.includes("fair")) {
     switch (timeOfDay) {
       case "morning": return ["#fed7aa", "#fb923c"];
@@ -39,21 +57,12 @@ function getGradientForCondition(condition: string, timeOfDay: TimeOfDay, temp: 
     }
   }
 
-  const isHot = temp > 25;
-  const isCold = temp < 5;
-
+  // Night default
   if (timeOfDay === "night") {
-    return ["#020617", isCold ? "#1e293b" : "#374151"];
+    return ["#020617", "#374151"];
   }
 
-  if (isHot) {
-    return ["#fefce8", "#eab308"];
-  }
-  
-  if (isCold) {
-    return ["#f1f5f9", "#94a3b8"];
-  }
-
+  // Cloudy day default
   return ["#e0f2fe", "#0ea5e9"];
 }
 
@@ -64,6 +73,7 @@ export default function Index() {
   const [searchText, setSearchText] = useState("");
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>("day");
   const [localTime, setLocalTime] = useState("");  
+
   async function loadLocalWeather() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -91,11 +101,16 @@ export default function Index() {
       setCondition(data.currentConditions.conditions);
 
       const epoch = data.currentConditions?.datetimeEpoch;
+      const timezone = data.timezone;
       const now = epoch ? new Date(epoch * 1000) : new Date();
       setTimeOfDay(getTimeOfDay(now));
       
-
-      const localTimeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      // FIXED: Use proper local timezone
+      const localTimeStr = now.toLocaleTimeString("en-US", { 
+        timeZone: timezone || undefined, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
       setLocalTime(localTimeStr);
     } catch (err) {
       console.error("Location/weather error", err);
@@ -130,17 +145,23 @@ export default function Index() {
       setSearchText("");
 
       const epoch = data.currentConditions?.datetimeEpoch;
+      const timezone = data.timezone;  // NEW: get timezone from API
       const now = epoch ? new Date(epoch * 1000) : new Date();
       setTimeOfDay(getTimeOfDay(now));
       
-      const localTimeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      // FIXED: Use proper local timezone
+      const localTimeStr = now.toLocaleTimeString("en-US", { 
+        timeZone: timezone || undefined, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
       setLocalTime(localTimeStr);
     } catch (err) {
       console.error("Weather fetch failed", err);
     }
   }
 
-  const gradientColors = getGradientForCondition(condition, timeOfDay, temp);
+  const gradientColors: string[] = getGradientForCondition(condition, timeOfDay, temp);
 
   return (
     <LinearGradient
