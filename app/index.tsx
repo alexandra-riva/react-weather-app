@@ -5,7 +5,7 @@ import { WeatherCard } from "../app/WeatherCard";
 import { CitySearch } from "../app/CitySearch";
 import { LinearGradient } from "expo-linear-gradient";
 
-const API_KEY = "KMGUUW9RD8626PEYJA9A83BPX";
+const API_KEY = process.env.EXPO_PUBLIC_WEATHER_API_KEY ?? "";
 
 type TimeOfDay = "morning" | "day" | "evening" | "night";
 
@@ -20,7 +20,7 @@ function getTimeOfDay(date: Date): TimeOfDay {
 function getGradientForCondition(condition: string, timeOfDay: TimeOfDay, temp: number): string[] {
   const c = condition.toLowerCase();
 
-  // RAIN/STORM/SNOW always override everything
+  // RAIN/STORM/SNOW override 
   if (c.includes("rain") || c.includes("drizzle")) {
     return timeOfDay === "night" ? ["#0a1428", "#1e40af"] : ["#1e40af", "#60a5fa"];
   }
@@ -31,23 +31,23 @@ function getGradientForCondition(condition: string, timeOfDay: TimeOfDay, temp: 
     return ["#f8fafc", "#cbd5e1"];
   }
 
-  // TEMPERATURE FIRST - cold/hot overrides weather
+  // TEMPERATURE FIRST
   const isHot = temp > 25;
   const isCold = temp < 5;
 
   if (isCold) {
-    // COLD places get icy tones regardless of "clear"
+    // COLD Places
     if (timeOfDay === "night") return ["#020617", "#1e293b"];
     return ["#f1f5f9", "#94a3b8"]; // icy blue/grey
   }
 
   if (isHot) {
-    // Hot places get warm tones
+    // HOT Places
     if (timeOfDay === "night") return ["#020617", "#7c2d12"];
     return ["#fefce8", "#eab308"];
   }
 
-  // NOW do sunny conditions (only for mild temps)
+  // Mild places
   if (c.includes("sun") || c.includes("clear") || c.includes("fair")) {
     switch (timeOfDay) {
       case "morning": return ["#fed7aa", "#fb923c"];
@@ -105,7 +105,7 @@ export default function Index() {
       const now = epoch ? new Date(epoch * 1000) : new Date();
       setTimeOfDay(getTimeOfDay(now));
       
-      // FIXED: Use proper local timezone
+      // Local Time zone
       const localTimeStr = now.toLocaleTimeString("en-US", { 
         timeZone: timezone || undefined, 
         hour: '2-digit', 
@@ -145,11 +145,11 @@ export default function Index() {
       setSearchText("");
 
       const epoch = data.currentConditions?.datetimeEpoch;
-      const timezone = data.timezone;  // NEW: get timezone from API
+      const timezone = data.timezone;  // Timezone from API
       const now = epoch ? new Date(epoch * 1000) : new Date();
       setTimeOfDay(getTimeOfDay(now));
-      
-      // FIXED: Use proper local timezone
+
+      // Local Time zone
       const localTimeStr = now.toLocaleTimeString("en-US", { 
         timeZone: timezone || undefined, 
         hour: '2-digit', 
